@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Text, Platform, View, TouchableOpacity } from 'react-native';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
@@ -9,13 +9,19 @@ import { sharedStyles } from '@/components/styles/styles';
 import { LeftMenuColumn } from '@/components/LeftColumnMenu';
 import { UniversalHeader } from '@/components/UniversalHeader';
 import { useTranslation } from '@/components/hooks/useTranslation';
+import { fetchEvents, Event } from '@/storage/events_database';
 
 export default function ExpensesScreen() {
   const [leftOpen, setLeftOpen] = useState(false);
   const [rightOpen, setRightOpen] = useState(false);
+  const [events, setEvents] = useState<Event[]>([]);
   const colorScheme = useColorScheme() ?? 'light';
   const router = useRouter();
   const { t } = useTranslation();
+
+  useEffect(() => {
+    fetchEvents().then(setEvents).catch(() => setEvents([]));
+  }, []);
 
   return (
     <ParallaxScrollView
@@ -42,6 +48,9 @@ export default function ExpensesScreen() {
               {/* Expenses List */}
               {t.expensesList}
             </ThemedText>
+            <>{events.map(ev => (
+              <div key={ev.id}>{ev.name} - ${ev.totalCost}</div>
+            ))}</>
           </ThemedView>
         </View>
 

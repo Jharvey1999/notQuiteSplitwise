@@ -3,10 +3,42 @@ export type Friend = {
   name: string;
 };
 
-export const friendsList: Friend[] = [
-  { id: '2', name: 'Oppenheimer' },
-  { id: '3', name: 'Einstein' },
-  { id: '4', name: 'Newton' },
-  { id: '5', name: 'Curie' },
-  { id: '6', name: 'Tesla' },
-];
+const API_URL = 'http://localhost:3000/api/friends'; // Change to your server IP if needed
+
+const getToken = async () => {
+  // e.g., from AsyncStorage or context
+  return null; // Replace with actual token retrieval
+};
+
+export async function fetchFriends() {
+  const token = await getToken();
+  const res = await fetch(API_URL, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error('Failed to fetch friends');
+  return res.json();
+}
+
+export async function addFriend(name: string) {
+  const token = await getToken();
+  const res = await fetch(`${API_URL}/request`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ name }),
+  });
+  if (!res.ok) throw new Error('Failed to add friend');
+  return res.json();
+}
+
+export async function deleteFriend(friendId: string) {
+  const token = await getToken();
+  const res = await fetch(`${API_URL}/${friendId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error('Failed to delete friend');
+  return true;
+}

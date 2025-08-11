@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, useColorScheme } from 'react-native';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { UniversalHeader } from '@/components/UniversalHeader';
@@ -11,6 +11,7 @@ import { pickProfileImage } from '@/components/ImagePicker';
 import { profileBarStyles } from '@/components/styles/styles';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '@/components/LanguageContext';
+import { fetchUserProfile, updateUserProfile, User } from '@/storage/user_database';
 
 export default function ProfileScreen() {
   const { user, setUser, portraitUri, setPortraitUri } = useProfile();
@@ -29,6 +30,7 @@ export default function ProfileScreen() {
   const [password, setPassword] = useState(user.password ?? '');
   const [showSuccess, setShowSuccess] = useState(false);
   const [leftOpen, setLeftOpen] = useState(false);
+  const [profile, setProfile] = useState<User | null>(null);
 
   const editProfile = useEditProfile();
   const router = useRouter();
@@ -39,6 +41,16 @@ export default function ProfileScreen() {
     if (uri) {
       setPortraitUri(uri);
     }
+  };
+
+  useEffect(() => {
+    fetchUserProfile().then(setProfile).catch(() => setProfile(null));
+  }, []);
+
+  // Example update handler
+  const handleUpdate = async (newProfile: User) => {
+    const updated = await updateUserProfile(newProfile);
+    setProfile(updated);
   };
 
   return (

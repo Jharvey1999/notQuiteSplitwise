@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, useColorScheme, ScrollView } from 'react-native';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { UniversalHeader } from '@/components/UniversalHeader';
@@ -8,6 +8,7 @@ import { useProfile } from '@/components/ProfileContext';
 import { useRouter } from 'expo-router';
 import { LeftMenuColumn } from '@/components/LeftColumnMenu'; 
 import { useTranslation } from '@/components/hooks/useTranslation';
+import { fetchUserProfile, updateUserProfile, User } from '@/storage/user_database';
 
 export default function SettingsScreen() {
   const [leftOpen, setLeftOpen] = useState(false);
@@ -16,12 +17,23 @@ export default function SettingsScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme() ?? 'light';
   const { t, language, setLanguage, availableLanguages } = useTranslation();
+  const [profile, setProfile] = useState<User | null>(null);
+
+  useEffect(() => {
+    fetchUserProfile().then(setProfile).catch(() => setProfile(null));
+  }, []);
 
   // Button background and text color based on theme
   const buttonBg = colorScheme === 'dark' ? '#222' : '#ccc';
   const buttonText = colorScheme === 'dark' ? 'white' : 'black';
   const dangerBg = colorScheme === 'dark' ? '#442222' : '#ffeaea';
   const dangerText = 'red';
+
+  // Example update handler
+  const handleUpdate = async (newProfile: User) => {
+    const updated = await updateUserProfile(newProfile);
+    setProfile(updated);
+  };
 
   return (
     <ParallaxScrollView

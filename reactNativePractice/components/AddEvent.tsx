@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Platform } from 'react-native';
-import { users } from '@/storage/user_database';
 import { useTranslation } from '@/components/hooks/useTranslation';
 
 type AddEventProps = {
@@ -19,14 +18,15 @@ type AddEventProps = {
 export const AddEvent: React.FC<AddEventProps> = ({
   visible, onClose, onAdd, currentUserId, friends, initialData
 }) => {
-  const currentUser = users.find(u => u.id === currentUserId);
   const [name, setName] = useState(initialData?.name || '');
   const [date, setDate] = useState(initialData?.date || '');
   const [contributions, setContributions] = useState(
     initialData?.contributions ||
-    [{ id: currentUserId, name: users.find(u => u.id === currentUserId)?.username || '', contribution: 0 }]
+    [{ id: currentUserId, name: friends.find(f => f.id === currentUserId)?.name || '', contribution: 0 }]
   );
-  const [availableFriends, setAvailableFriends] = useState(friends);
+  const [availableFriends, setAvailableFriends] = useState(
+    friends.filter(f => !contributions.some(c => c.id === f.id))
+  );
   const [dateError, setDateError] = useState('');
   const { t } = useTranslation();
 
@@ -39,11 +39,8 @@ export const AddEvent: React.FC<AddEventProps> = ({
 
   // Helper to format date to yyyy-mm-dd
   function formatDate(input: string): string {
-    // Accepts yyyy-mm-dd, dd-mm-yyyy, mm/dd/yyyy, etc.
     let cleaned = input.replace(/[^\d]/g, '');
     if (cleaned.length === 8) {
-      // Try to detect format
-      // If input is ddmmyyyy or mmddyyyy, convert to yyyy-mm-dd
       let yyyy, mm, dd;
       if (/^\d{4}\d{2}\d{2}$/.test(cleaned)) {
         yyyy = cleaned.slice(0, 4);
@@ -54,7 +51,7 @@ export const AddEvent: React.FC<AddEventProps> = ({
         mm = cleaned.slice(2, 4);
         yyyy = cleaned.slice(4, 8);
       } else {
-        return input; // fallback
+        return input;
       }
       return `${yyyy}-${mm}-${dd}`;
     }
@@ -62,7 +59,6 @@ export const AddEvent: React.FC<AddEventProps> = ({
   }
 
   function isValidDate(str: string) {
-    // Checks for yyyy-mm-dd format and valid date
     const regex = /^\d{4}-\d{2}-\d{2}$/;
     if (!regex.test(str)) return false;
     const d = new Date(str);
@@ -160,8 +156,8 @@ export const AddEvent: React.FC<AddEventProps> = ({
             setName('');
             setDate('');
             setDateError('');
-            setContributions(currentUser ? [{ id: currentUser.id, name: currentUser.username, contribution: 0 }] : []);
-            setAvailableFriends(friends);
+            setContributions([{ id: currentUserId, name: friends.find(f => f.id === currentUserId)?.name || '', contribution: 0 }]);
+            setAvailableFriends(friends.filter(f => f.id !== currentUserId));
             onClose();
           }}
         >

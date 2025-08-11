@@ -5,15 +5,13 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useRouter } from 'expo-router';
 import { sharedStyles } from '@/components/styles/styles';
 import { EventList } from '@/components/EventList';
-import { events } from '@/storage/events_database';
-import { Event } from '@/storage/events_database';
-import { friendsList } from '@/storage/friendsList';
+import { fetchEvents, createEvent, updateEvent, deleteEvent, Event } from '@/storage/events_database';
+import { fetchFriends } from '@/storage/friendsList';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ProfileBar } from '@/util/profileUtil';
 import { AddEvent } from '@/components/AddEvent';
-import { createEvent } from '@/storage/events_database';
 import { DeleteEvent } from '@/components/DeleteEvent';
 import { EditEvent } from '@/components/EditEvent';
 import { EditEventForm } from '@/components/EditEvent';
@@ -27,7 +25,8 @@ export default function HomeScreen() {
 	const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
 	const [addEventVisible, setAddEventVisible] = useState(false);
 	const [deleteEventVisible, setDeleteEventVisible] = useState(false);
-	const [eventList, setEventList] = useState(events); 
+	const [eventList, setEventList] = useState<Event[]>([]);
+	const [friends, setFriends] = useState<any[]>([]);
 	const [editEventFormVisible, setEditEventFormVisible] = useState(false);
 	const [eventToEdit, setEventToEdit] = useState<Event | null>(null);
 	const [selectEditEventVisible, setSelectEditEventVisible] = useState(false);
@@ -49,7 +48,46 @@ export default function HomeScreen() {
 		transform: [{ scale: scale.value }],
 	}));
 
-	const handleRemoveEvent = (eventId: string) => {
+	// Fetch events and friends from server on mount
+	React.useEffect(() => {
+		fetchEvents().then(setEventList).catch(() => setEventList([]));
+		fetchFriends().then(setFriends).catch(() => setFriends([]));
+	}, []);
+
+	// Add event via API
+	const handleAddEvent = async (eventData: any) => {
+		try {
+			const newEvent = await createEvent(eventData);
+			setEventList(prev => [...prev, newEvent]);
+			setAddEventVisible(false);
+		} catch {
+			// handle error
+		}
+	};
+
+	// Remove event via API
+	const handleRemoveEvent = async (eventId: string) => {
+		try {
+			await deleteEvent(eventId);
+			setEventList(prev => prev.filter(event => event.id !== eventId));
+		} catch {
+			// handle error
+		}
+	};
+
+	// Edit event via API
+	const handleEditEvent = async (eventId: string, eventData: any) => {
+		try {
+			const updated = await updateEvent(eventId, eventData);
+			setEventList(prev => prev.map(ev => (ev.id === eventId ? updated : ev)));
+			setEditEventFormVisible(false);
+			setEventToEdit(null);
+		} catch {
+			// handle error
+		}
+	};
+
+	const handleRemoveEventLocal = (eventId: string) => {
 		setEventList((prev) => prev.filter((event) => event.id !== eventId));
 	};
 
@@ -110,7 +148,7 @@ export default function HomeScreen() {
 									events={eventList}
 									selectedEvent={selectedEvent}
 									setSelectedEvent={setSelectedEvent}
-									onRemoveEvent={handleRemoveEvent}
+									onRemoveEvent={handleRemoveEventLocal}
 								/>
 
 								{/* Hamburger Button */}
@@ -135,19 +173,9 @@ export default function HomeScreen() {
 					<AddEvent
 						visible={addEventVisible}
 						onClose={() => setAddEventVisible(false)}
-						onAdd={eventData => {
-							const newEvent = createEvent(
-								(eventList.length + 1).toString(),
-								eventData.date,
-								eventData.name,
-								eventData.contributions,
-								user.id
-							);
-							setEventList(prev => [...prev, newEvent]);
-							setAddEventVisible(false);
-						}}
+						onAdd={handleAddEvent}
 						currentUserId={user.id}
-						friends={friendsList}
+						friends={friends}
 					/>
 					<DeleteEvent
 						visible={deleteEventVisible}
@@ -173,17 +201,9 @@ export default function HomeScreen() {
 						onClose={() => setEditEventFormVisible(false)}
 						onSave={eventData => {
 							if (!eventToEdit) return;
-							setEventList(prev =>
-								prev.map(ev =>
-									ev.id === eventToEdit.id
-										? { ...ev, ...eventData, id: ev.id }
-										: ev
-								)
-							);
-							setEditEventFormVisible(false);
-							setEventToEdit(null);
+							handleEditEvent(eventToEdit.id, eventData);
 						}}
-						friends ={friendsList}
+						friends={friends}
 					/>
 					<SummaryEvent
 						visible={summaryVisible}

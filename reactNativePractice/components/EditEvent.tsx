@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import { Event } from '@/storage/events_database';
-import { users } from '@/storage/user_database';
 import { useTranslation } from '@/components/hooks/useTranslation';
 
 type EditEventFormProps = {
@@ -9,7 +8,7 @@ type EditEventFormProps = {
   event: Event | null;
   onClose: () => void;
   onSave: (eventData: { name: string; date: string; contributions: { id: string; name: string; contribution: number }[] }) => void;
-  friends?: { id: string; name: string }[]; // Optional, for adding friends
+  friends?: { id: string; name: string }[];
 };
 
 export const EditEventForm: React.FC<EditEventFormProps> = ({
@@ -27,7 +26,7 @@ export const EditEventForm: React.FC<EditEventFormProps> = ({
   const [contributions, setContributions] = useState(
     event.users.map(u => ({
       id: u.id,
-      name: u.username,
+      name: u.username || '',
       contribution: u.contribution,
     }))
   );

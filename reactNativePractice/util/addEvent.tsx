@@ -1,34 +1,29 @@
-import { events } from '@/storage/events_database';
-import { users } from '@/storage/user_database';
+import { createEvent } from '@/storage/events_database';
+import { Event } from '@/storage/events_database';
 
-export function addEvent(eventData: {
+export async function addEventToServer(eventData: {
   id: string;
   name: string;
   date: string;
   contributions: { id: string; contribution: number }[];
   createdBy: string;
+  users: Event['users']; // Add users if you have them
 }) {
-  // add event to existing array
-  events.push({
+  // Calculate totalCost and other fields
+  const totalCost = eventData.contributions.reduce((sum, c) => sum + c.contribution, 0);
+
+  // You may need to build the users array based on contributions and user info
+  // For now, assuming eventData.users is provided and matches EventUser[]
+  const event: Event = {
     id: eventData.id,
     name: eventData.name,
     date: eventData.date,
-    totalCost: eventData.contributions.reduce((sum, c) => sum + c.contribution, 0),
-    paid: eventData.contributions.find(c => c.id === eventData.createdBy)?.contribution || 0,
-    uOwed: 0,
-    othersOwed: 0, 
-    users: eventData.contributions.map(c => {
-      // build user to find all data of that user
-      const fullUser = users.find(user => user.id === c.id);
-      
-      if (!fullUser) {
-        throw new Error(`User with id ${c.id} not found`);
-      }
-      
-      return {
-        ...fullUser,
-        contribution: c.contribution,
-      };
-    }),
-  });
+    totalCost,
+    paid: 0, // Set appropriately
+    uOwed: 0, // Set appropriately
+    othersOwed: 0, // Set appropriately
+    users: eventData.users,
+  };
+
+  await createEvent(event);
 }

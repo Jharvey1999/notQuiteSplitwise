@@ -1,27 +1,25 @@
-import React, { useState } from 'react';
-import { Text, Platform, View, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Text, View, TouchableOpacity, ScrollView } from 'react-native';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { sharedStyles, friendsScreenStyles } from '@/components/styles/styles';
 import { LeftMenuColumn } from '@/components/LeftColumnMenu';
-import { friendsList } from '@/storage/friendsList';
+import { fetchFriends, addFriend, deleteFriend } from '@/storage/friendsList';
+import { fetchEvents, Event } from '@/storage/events_database';
 import { calculateRelationship } from '@/util/calcRelationship';
 import { getSharedEvents } from '@/util/sharedEvents';
-import { events } from '@/storage/events_database';
 import { EventList } from '@/components/EventList';
 import { UniversalHeader } from '@/components/UniversalHeader';
 import { AddFriend } from '@/components/AddFriend';
-import { addFriend } from '@/util/addFriends';
-import { deleteFriend } from '@/util/deleteFriend';
 import { useProfile } from '@/components/ProfileContext'; 
 import { useTranslation } from '@/components/hooks/useTranslation';
 
 export default function FriendsScreen() {
   const [leftOpen, setLeftOpen] = useState(false);
   const [rightOpen, setRightOpen] = useState(false);
-  const [selectedFriend, setSelectedFriend] = useState<typeof friendsList[0] | null>(null);
+  const [selectedFriend, setSelectedFriend] = useState<any | null>(null);
   const [selectedSharedEvent, setSelectedSharedEvent] = useState<string | null>(null);
   const colorScheme = useColorScheme() ?? 'light';
   const [showSharedEvents, setShowSharedEvents] = useState(false);
@@ -30,6 +28,14 @@ export default function FriendsScreen() {
   const [friendsToDelete, setFriendsToDelete] = useState<string[]>([]);
   const { user } = useProfile(); 
   const { t } = useTranslation();
+
+  const [friends, setFriends] = useState<any[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
+
+  useEffect(() => {
+    fetchFriends().then(setFriends).catch(() => setFriends([]));
+    fetchEvents().then(setEvents).catch(() => setEvents([]));
+  }, []);
 
   const sharedEvents = selectedFriend
     ? getSharedEvents(events, user.id, selectedFriend.id)
@@ -46,6 +52,16 @@ export default function FriendsScreen() {
     addFriend(friendData.name);
     setAddFriendVisible(false);
   }
+
+  // Example: Delete a friend
+  const handleDeleteFriend = async (friendId: string) => {
+    try {
+      await deleteFriend(friendId);
+      setFriends(prev => prev.filter(f => f.id !== friendId));
+    } catch {
+      // handle error
+    }
+  };
 
   return (
     <ParallaxScrollView
@@ -128,7 +144,7 @@ export default function FriendsScreen() {
 
           {/* Friends List */}
           <ThemedView style={sharedStyles.stepContainer}>
-            {friendsList.map(friend => {
+            {friends.map(friend => {
               const selected = friendsToDelete.includes(friend.id);
               return (
                 <View key={friend.id} style={{ flexDirection: 'row', alignItems: 'center' }}>
