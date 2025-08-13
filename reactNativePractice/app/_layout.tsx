@@ -1,8 +1,9 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { useRouter, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useFonts } from 'expo-font';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { LanguageProvider } from '@/components/LanguageContext';
@@ -16,10 +17,22 @@ export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     if (loaded) {
-      SplashScreen.hideAsync();
+      SplashScreen.hideAsync().then(() => {
+        // Now safe to check auth and navigate
+        const checkAuth = async () => {
+          const token = await AsyncStorage.getItem('token');
+          if (!token) {
+            router.replace('/(tabs)/loginScreen');
+          }
+          setCheckingAuth(false);
+        };
+        checkAuth();
+      });
     }
   }, [loaded]);
 

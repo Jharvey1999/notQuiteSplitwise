@@ -218,6 +218,27 @@ export const sharedStyles = StyleSheet.create({
     fontSize: 10,
     color: '#737773ff',
   },
+  error: {
+    color: 'red',
+    fontSize: 14,
+    marginBottom: 12,
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  loginButton: {
+    backgroundColor: '#30c035',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 6,
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  loginButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
 });
 
 export const friendsScreenStyles = StyleSheet.create({

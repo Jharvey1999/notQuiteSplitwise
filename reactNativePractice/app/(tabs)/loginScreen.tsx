@@ -1,12 +1,24 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, Text, StyleSheet } from 'react-native';
+import { View, TextInput, Text, TouchableOpacity, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
+import { sharedStyles } from '@/components/styles/styles';
+import { useTranslation } from '@/components/hooks/useTranslation';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import ParallaxScrollView from '@/components/ParallaxScrollView';
 
 export default function LoginScreen() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const router = useRouter();
+  const { t } = useTranslation();
+  const colorScheme = useColorScheme() ?? 'light';
+
+  // Use pure black/white for background
+  const backgroundColor = colorScheme === 'dark' ? '#000' : '#fff';
+  const fieldTitleColor = colorScheme === 'dark' ? '#ccc' : '#333';
+  const placeholderTextColor = colorScheme === 'dark' ? '#aaa' : '#888';
+  const inputTextColor = colorScheme === 'dark' ? '#fff' : '#222';
 
   const handleLogin = async () => {
     setError('');
@@ -26,31 +38,58 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Sign In</Text>
-      <TextInput
-        placeholder="Username or Email"
-        value={username}
-        onChangeText={setUsername}
-        style={styles.input}
-        autoCapitalize="none"
-      />
-      <TextInput
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        style={styles.input}
-        secureTextEntry
-      />
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      <Button title="Login" onPress={handleLogin} />
-    </View>
+    <ParallaxScrollView
+      headerBackgroundColor={{ light: '#30c035ff', dark: '#17851bff' }}
+      headerImage={
+                    <View
+                      style={{
+                        paddingTop: 0,
+                        marginTop: 0,
+                        alignItems: 'center',
+                        justifyContent: 'flex-start',
+                      }}
+                    >
+                      {/* MAIN title (no translation) */}
+                      <Text
+                        style={{
+                          fontSize: Platform.OS === 'web' ? 58 : 30,
+                          color: colorScheme === 'dark' ? 'white' : 'black',
+                          textAlign: 'center',
+                          marginTop: 0,
+                        }}
+                      >
+                        Not Quite Splitwise
+                      </Text>
+                    </View>
+                  }
+                >
+      <View style={[sharedStyles.container, { backgroundColor, minHeight: 400 }]}>
+        <Text style={[sharedStyles.title, { color: fieldTitleColor }]}>Sign In</Text>
+        <Text style={[sharedStyles.profileFieldLabel, { color: fieldTitleColor }]}>Username or Email</Text>
+        <TextInput
+          placeholder="Username or Email"
+          placeholderTextColor={placeholderTextColor}
+          value={username}
+          onChangeText={setUsername}
+          style={[sharedStyles.profileTextInput, { color: inputTextColor }]}
+          autoCapitalize="none"
+        />
+        <Text style={[sharedStyles.profileFieldLabel, { color: fieldTitleColor }]}>Password</Text>
+        <TextInput
+          placeholder="Password"
+          placeholderTextColor={placeholderTextColor}
+          value={password}
+          onChangeText={setPassword}
+          style={[sharedStyles.profileTextInputPassword, { color: inputTextColor }]}
+          secureTextEntry
+          returnKeyType='done'
+          onSubmitEditing={handleLogin}
+        />
+        {error ? <Text style={sharedStyles.error}>{error}</Text> : null}
+        <TouchableOpacity style={sharedStyles.loginButton} onPress={handleLogin}>
+          <Text style={sharedStyles.loginButtonText}>Login</Text>
+        </TouchableOpacity>
+      </View>
+    </ParallaxScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 24 },
-  title: { fontSize: 24, marginBottom: 24, textAlign: 'center' },
-  input: { borderWidth: 1, borderColor: '#ccc', marginBottom: 12, padding: 8, borderRadius: 4 },
-  error: { color: 'red', marginBottom: 12, textAlign: 'center' },
-});
