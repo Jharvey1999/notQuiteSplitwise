@@ -1,4 +1,5 @@
 import { User } from './user_database';
+import { getToken } from './getToken';
 
 export type EventUser = User & { contribution: number };
 
@@ -71,17 +72,15 @@ export function calc(
 
 const API_URL = 'http://localhost:3000/api/events'; // Change to your server IP if needed
 
-// Helper to get token (replace with your actual implementation)
-const getToken = async () => {
-  // e.g., from AsyncStorage or context
-  // return await AsyncStorage.getItem('token');
-  return null; // Replace with actual token retrieval
-};
+
 
 export async function fetchEvents(): Promise<Event[]> {
   const token = await getToken();
   const res = await fetch(API_URL, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { 
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    }
   });
   if (!res.ok) throw new Error('Failed to fetch events');
   return res.json();
@@ -90,7 +89,9 @@ export async function fetchEvents(): Promise<Event[]> {
 export async function fetchEventById(eventId: string): Promise<Event> {
   const token = await getToken();
   const res = await fetch(`${API_URL}/${eventId}`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { 
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`, },
   });
   if (!res.ok) throw new Error('Failed to fetch event');
   return res.json();
@@ -128,7 +129,10 @@ export async function deleteEvent(eventId: string): Promise<boolean> {
   const token = await getToken();
   const res = await fetch(`${API_URL}/${eventId}`, {
     method: 'DELETE',
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { 
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
   });
   if (!res.ok) throw new Error('Failed to delete event');
   return true;

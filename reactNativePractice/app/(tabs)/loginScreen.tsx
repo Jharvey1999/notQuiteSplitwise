@@ -5,6 +5,7 @@ import { sharedStyles } from '@/components/styles/styles';
 import { useTranslation } from '@/components/hooks/useTranslation';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen() {
   const [username, setUsername] = useState('');
@@ -30,7 +31,9 @@ export default function LoginScreen() {
       });
       if (!res.ok) throw new Error('Invalid credentials');
       const { token } = await res.json();
+
       // Save token (e.g., AsyncStorage)
+      await AsyncStorage.setItem('token', token);
       router.replace('/(tabs)');
     } catch {
       setError('Login failed');

@@ -1,3 +1,5 @@
+import { getToken } from './getToken';
+
 export type User = {
   id: string;
   firstName: string;
@@ -12,10 +14,6 @@ export type User = {
 
 const API_URL = 'http://localhost:3000/api/users'; // Change to your server IP if needed
 
-const getToken = async () => {
-  // e.g., from AsyncStorage or context
-  return null; // Replace with actual token retrieval
-};
 
 export async function fetchUserProfile() {
   const token = await getToken();

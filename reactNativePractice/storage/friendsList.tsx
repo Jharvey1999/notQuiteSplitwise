@@ -1,3 +1,6 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getToken } from './getToken'; 
+
 export type Friend = {
   id: string;
   name: string;
@@ -5,15 +8,14 @@ export type Friend = {
 
 const API_URL = 'http://localhost:3000/api/friends'; // Change to your server IP if needed
 
-const getToken = async () => {
-  // e.g., from AsyncStorage or context
-  return null; // Replace with actual token retrieval
-};
+
 
 export async function fetchFriends() {
   const token = await getToken();
   const res = await fetch(API_URL, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { 
+      'Content-Type':' application/json',
+      Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error('Failed to fetch friends');
   return res.json();

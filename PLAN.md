@@ -59,3 +59,9 @@ win + space to toggle keyboard languages (fucking anoying)
         - see if they console log correctly
     2 - how to implement database
         - mongodb? SQL?
+
+
+
+Forgot to save token (save in app)
+    - comment out use authentication endpoints (simplify for scope)
+        - pass username string to get objects because its easy later to replace the string with token
